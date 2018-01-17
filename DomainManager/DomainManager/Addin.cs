@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.Attributes;
+using System.Reflection;
+using System.Windows;
+using System.IO;
 
 namespace DomainManager
 {
@@ -14,7 +17,20 @@ namespace DomainManager
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            throw new NotImplementedException();
+            try
+            {
+                MainWindow view = new MainWindow();
+                MainWindowVM vm = new MainWindowVM(view);
+                view.DataContext = vm;
+                vm.RevitPath=Path.GetDirectoryName(Assembly.GetAssembly(typeof(IExternalCommand)).Location);
+                view.ShowDialog();
+                return Result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message + Environment.NewLine + ex.StackTrace);
+                return Result.Failed;
+            }
         }
     }
 }
