@@ -23,8 +23,8 @@ namespace DomainManager
         private MainWindow view = null;
         private string revitPath;
         private DefaultAssemblyResolver resolver = null;
-        private AppDomain tempDomain = null;
-        private AssemblyLoader loader = null;
+        private DomainParser parser = null;
+        public object[] Parameters = null;
 
         public string RevitPath
         {
@@ -55,19 +55,19 @@ namespace DomainManager
                 this.RaisePropertyChanged(() => SelectedModel);
             }
         }
-        public DelegateCommand LoadCommand { get; private set; }
-        public DelegateCommand RunCommand { get; private set; }
-        public DelegateCommand RemoveCommand { get; private set; }
+        public DelegateCommand LoadCommand { get;  set; }
+        public DelegateCommand RunCommand { get;  set; }
+        public DelegateCommand RemoveCommand { get;  set; }
 
         public MainWindowVM(MainWindow v)
         {
             view = v;
             LoadCommand = new DelegateCommand(Load);
-            RunCommand = new DelegateCommand(Run, () => SelectedModel == null ? false : SelectedModel.Children.Count==0);
+            RunCommand = new DelegateCommand(Run);
             RemoveCommand = new DelegateCommand(Remove, () => SelectedModel == null ? false : SelectedModel.Parent == null);
         }
 
-       
+
 
         private void Load()
         {
@@ -79,17 +79,12 @@ namespace DomainManager
                 };
                 if (openFileDialog.ShowDialog() == true)
                 {
-                    WsdlClassParser a = new WsdlClassParser();
-                    a.CreateWsdlClassParser();
+                    parser?.Unload();
                     var file = openFileDialog.FileName;
-                    tempDomain = tempDomain ?? AppDomain.CreateDomain("addinDomain",AppDomain.CurrentDomain.Evidence,AppDomain.CurrentDomain.SetupInformation);
-                    resolver = new DefaultAssemblyResolver();
-                    var s = resolver.revitDirectory;
-                    //tempDomain.AssemblyResolve += resolver.CurrentDomain_AssemblyResolve;
-                    var ss = resolver.test();
-                    loader = (AssemblyLoader)tempDomain.CreateInstanceAndUnwrap(Assembly.GetExecutingAssembly().Location, "DomainManager.AssemblyLoader", false, 0, null, null, CultureInfo.InvariantCulture, null);
-
-                    var assembly = loader.ReadAssembly(file);
+                    resolver = new DefaultAssemblyResolver(RevitPath);
+                    parser = new DomainParser() { revitDirectory = RevitPath };
+                    parser.CreateParser();
+                    var assembly = parser.ReadAssembly(file);
                     if (assembly == null)
                     {
                         MessageBox.Show("resolve failed");
@@ -116,55 +111,36 @@ namespace DomainManager
                         });
                     }
                     Models.Add(model);
-                    AppDomain.Unload(tempDomain);
+                    parser?.Unload();
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message + Environment.NewLine + ex.StackTrace);
+                parser?.Unload();
             }
         }
 
-     
+
 
         private void Run()
         {
-            //resolver = new DefaultAssemblyResolver(RevitPath, null);
-            tempDomain = tempDomain ?? AppDomain.CreateDomain("addinDomain");
-            loader = loader ?? (AssemblyLoader)tempDomain.CreateInstanceFromAndUnwrap
-                (Assembly.GetExecutingAssembly().Location, "RTF.Framework.AssemblyLoader",
-                false, 0, null, new object[] { resolver }, CultureInfo.InvariantCulture, null);
-            var assembly = loader.ReadAssembly(SelectedModel.Path);
-            if (assembly == null)
+            try
             {
-                MessageBox.Show("resolve failed");
-                return;
+                resolver = new DefaultAssemblyResolver(RevitPath);
+                parser = new DomainParser() { revitDirectory = RevitPath };
+                parser.CreateParser();
+                parser.Run(SelectedModel.Path, SelectedModel.Name, Parameters);
+           
             }
-            var type = assembly.GetType(SelectedModel.Name);
-            if (type == null)
+            catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(string.Format(" not found {0} type", SelectedModel.Name));
-                return;
+                MessageBox.Show(ex.Message + Environment.NewLine + ex.StackTrace);
+                parser?.Unload();
             }
-            var ctor = type.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public, Type.DefaultBinder, new Type[0], null);
-            if (ctor == null)
-            {
-                System.Windows.MessageBox.Show(string.Format("{0} type not contain empty Constructor", SelectedModel.Name));
-                return;
-            }
-            var method = type.GetMethod("Execute", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            if (method == null)
-            {
-                System.Windows.MessageBox.Show(string.Format("not found {0} Execute", method.Name));
-                return;
-            }
-            view.Close();
-            var instance = ctor.Invoke(null);
-            method.Invoke(instance, new object[] { null });
-            AppDomain.Unload(tempDomain);
         }
 
-        
+
 
         private void Remove()
         {

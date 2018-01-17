@@ -22,6 +22,7 @@ namespace DomainManager
                 MainWindow view = new MainWindow();
                 MainWindowVM vm = new MainWindowVM(view);
                 view.DataContext = vm;
+                vm.Parameters = new object[] { commandData, message, elements };
                 vm.RevitPath=Path.GetDirectoryName(Assembly.GetAssembly(typeof(IExternalCommand)).Location);
                 view.ShowDialog();
                 return Result.Succeeded;

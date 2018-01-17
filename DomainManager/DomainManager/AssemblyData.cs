@@ -47,7 +47,7 @@ namespace DomainManager
             }
         }
 
-        private ObservableCollection<AssemblyData> children;
+        private ObservableCollection<AssemblyData> children=new ObservableCollection<AssemblyData>();
 
         public ObservableCollection<AssemblyData> Children
         {

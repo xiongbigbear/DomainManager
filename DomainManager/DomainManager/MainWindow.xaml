@@ -32,8 +32,8 @@
         <Separator Grid.Row="1" Margin="0,3,0,0" VerticalAlignment="Top"></Separator>
         <Button Grid.Row="1" Command="{Binding RemoveCommand}" HorizontalAlignment="Left" Width="100" Height="32" VerticalAlignment="Center" Margin="5,5,0,0" Content="Remove"></Button>
         <StackPanel Orientation="Horizontal" Grid.Row="1" HorizontalAlignment="Right" VerticalAlignment="Center">
-            <Button Command="{Binding LoadCommand}" Margin="0,5,5,0" Width="100" Height="32" Content="Load"></Button>
-            <Button Command="{Binding RunCommand}" Margin="0,5,5,0" Width="100" Height="32" Content="Run"></Button>
+            <Button Command="{Binding LoadCommand,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" Margin="0,5,5,0" Width="100" Height="32" Content="Load"></Button>
+            <Button Command="{Binding RunCommand,UpdateSourceTrigger=PropertyChanged,Mode=TwoWay}" Margin="0,5,5,0" Width="100" Height="32" Content="Run"></Button>
         </StackPanel>
     </Grid>
 </Window>

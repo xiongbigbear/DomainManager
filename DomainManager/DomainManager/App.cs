@@ -19,7 +19,6 @@ namespace DomainManager
         private string strProductNameChinese = "Addin";
         private string tabName = "DomainManager";
         private string strPanelChinese = "DomainMgr";
-        private static string MutexName = "InterProcessSyncName";
         public Result OnShutdown(UIControlledApplication application)
         {
             return Result.Succeeded;

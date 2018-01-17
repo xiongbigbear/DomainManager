@@ -10,13 +10,13 @@ namespace DomainManager
    [Serializable]
     public class AssemblyLoader:MarshalByRefObject
     {
-        //public AssemblyLoader(IAssemblyResolver resolver)
-        //{
-        //    AppDomain.CurrentDomain.AssemblyResolve +=
-        //            resolver.Resolve;
-        //}
+        private IAssemblyResolver _resolver = null;
+        public AssemblyLoader(IAssemblyResolver resolver)
+        {
+            _resolver = resolver;
+        }
 
-      
+
         public Assembly ReadAssembly(string assemblyPath)
         {
             var assembly = Assembly.LoadFrom(assemblyPath);
