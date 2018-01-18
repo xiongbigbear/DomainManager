@@ -80,7 +80,7 @@ namespace DomainManager
                 {
                     var file = openFileDialog.FileName;
                     AssemblyResolver resolver = new AssemblyResolver(RevitPath, null);
-                    AssemblyLoader loader = new AssemblyLoader(resolver);
+                    loader = new AssemblyLoader(resolver);
                     var model = loader.LoadAssembly(file);
                     if (Models.Where(a => a.Path == file).Count() > 0)
                     {
