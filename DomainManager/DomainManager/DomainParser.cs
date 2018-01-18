@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Autodesk.Revit.Attributes;
+using Autodesk.Revit.UI;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -14,9 +16,11 @@ namespace DomainManager
     {
         public AppDomain LocalAppDomain = null;
         public string revitDirectory = "";
+        public object[] Parameters = null;
         public List<string> AdditionalResolutionDirectories { get; set; }
+      
 
-       
+
 
         public Assembly Resolve(object sender, ResolveEventArgs args)
         {
@@ -124,7 +128,7 @@ namespace DomainManager
             return parser;
         }
 
-        public void Run(string assemblyPath,string Name,object[] parameters)
+        public void Run(string assemblyPath,string Name)
         {
             var assembly = Assembly.LoadFrom(assemblyPath);
             if (assembly == null)
@@ -151,7 +155,7 @@ namespace DomainManager
                 return;
             }
             var instance = ctor.Invoke(null);
-            method.Invoke(instance, parameters);
+            method.Invoke(instance, Parameters);
             Unload();
         }
 
@@ -163,13 +167,35 @@ namespace DomainManager
             domainSetup.ApplicationName = appDomain;
             domainSetup.ApplicationBase = Environment.CurrentDirectory;                  
             LocalAppDomain = AppDomain.CreateDomain(appDomain, null, domainSetup);
-            LocalAppDomain.AssemblyResolve +=Resolve;
+            AppDomain.CurrentDomain.AssemblyResolve +=Resolve;
             return LocalAppDomain;
         }
-        public Assembly ReadAssembly(string assemblyPath)
+        public AssemblyData ReadAssembly(string assemblyPath)
         {
             var assembly = Assembly.LoadFrom(assemblyPath);
-            return assembly;
+           
+            if (assembly == null)
+            {
+                MessageBox.Show("resolve failed");
+                return null;
+            }
+            var types = assembly.GetTypes().Where(x => x.GetAttribue<TransactionAttribute>() != null && x.GetInterface(typeof(IExternalCommand).FullName) != null).ToList();
+            if (types.Count == 0)
+            {
+                return null;
+            }
+           
+            var model = new AssemblyData() { Name = assembly.GetName().Name, Path = assemblyPath };
+            foreach (var item in types)
+            {
+                model.Children.Add(new AssemblyData()
+                {
+                    Name = item.FullName,
+                    Path = assemblyPath,
+                    Parent = model
+                });
+            }
+            return model;
         }
 
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)

@@ -9,6 +9,7 @@ using Autodesk.Revit.Attributes;
 using System.Reflection;
 using System.Windows;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace DomainManager
 {
@@ -19,9 +20,17 @@ namespace DomainManager
         {
             try
             {
+                var doc = commandData.Application.ActiveUIDocument.Document;
                 MainWindow view = new MainWindow();
                 MainWindowVM vm = new MainWindowVM(view);
                 view.DataContext = vm;
+                //var s = commandData.GetType().IsSerializable;
+                //JsonSerializerSettings setting = new JsonSerializerSettings();
+                //setting.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                //setting.ContractResolver = new JsonUtils();
+                //var str= JsonConvert.SerializeObject(commandData,Formatting.Indented,setting);
+                //MessageBox.Show("sss");
+                //ExternalCommandData a= JsonConvert.DeserializeObject<ExternalCommandData>(str);
                 vm.Parameters = new object[] { commandData, message, elements };
                 vm.RevitPath=Path.GetDirectoryName(Assembly.GetAssembly(typeof(IExternalCommand)).Location);
                 view.ShowDialog();

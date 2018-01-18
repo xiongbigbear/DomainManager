@@ -33,6 +33,10 @@
     <Reference Include="Microsoft.Practices.Prism">
       <HintPath>..\..\libs\Microsoft.Practices.Prism.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="RevitAPI">
@@ -61,7 +65,8 @@
     <Compile Include="App.cs" />
     <Compile Include="AssemblyData.cs" />
     <Compile Include="AssemblyLoader.cs" />
-    <Compile Include="DefaultAssemblyResolver.cs" />
+    <Compile Include="AssemblyResolver.cs" />
+    <Compile Include="JsonUtils.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>

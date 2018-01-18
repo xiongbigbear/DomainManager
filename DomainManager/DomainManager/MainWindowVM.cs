@@ -22,8 +22,7 @@ namespace DomainManager
     {
         private MainWindow view = null;
         private string revitPath;
-        private DefaultAssemblyResolver resolver = null;
-        private DomainParser parser = null;
+        private AssemblyLoader loader = null;
         public object[] Parameters = null;
 
         public string RevitPath
@@ -55,9 +54,9 @@ namespace DomainManager
                 this.RaisePropertyChanged(() => SelectedModel);
             }
         }
-        public DelegateCommand LoadCommand { get;  set; }
-        public DelegateCommand RunCommand { get;  set; }
-        public DelegateCommand RemoveCommand { get;  set; }
+        public DelegateCommand LoadCommand { get; set; }
+        public DelegateCommand RunCommand { get; set; }
+        public DelegateCommand RemoveCommand { get; set; }
 
         public MainWindowVM(MainWindow v)
         {
@@ -79,64 +78,33 @@ namespace DomainManager
                 };
                 if (openFileDialog.ShowDialog() == true)
                 {
-                    parser?.Unload();
                     var file = openFileDialog.FileName;
-                    resolver = new DefaultAssemblyResolver(RevitPath);
-                    parser = new DomainParser() { revitDirectory = RevitPath };
-                    parser.CreateParser();
-                    var assembly = parser.ReadAssembly(file);
-                    if (assembly == null)
+                    AssemblyResolver resolver = new AssemblyResolver(RevitPath, null);
+                    AssemblyLoader loader = new AssemblyLoader(resolver);
+                    var model = loader.LoadAssembly(file);
+                    if (Models.Where(a => a.Path == file).Count() > 0)
                     {
-                        MessageBox.Show("resolve failed");
-                        return;
-                    }
-                    var types = assembly.GetTypes().Where(x => x.GetAttribue<TransactionAttribute>() != null && x.GetInterface(typeof(IExternalCommand).FullName) != null).ToList();
-                    if (types.Count == 0)
-                    {
-                        return;
-                    }
-                    var addin = Models?.FirstOrDefault(x => x.Name == assembly.GetName().Name);
-                    if (addin != null)
-                    {
-                        Models.Remove(addin);
-                    }
-                    var model = new AssemblyData() { Name = assembly.GetName().Name, Path = file };
-                    foreach (var item in types)
-                    {
-                        model.Children.Add(new AssemblyData()
-                        {
-                            Name = item.FullName,
-                            Path = file,
-                            Parent = model
-                        });
+                        Models.Remove(model);
                     }
                     Models.Add(model);
-                    parser?.Unload();
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message + Environment.NewLine + ex.StackTrace);
-                parser?.Unload();
+                
             }
         }
-
-
 
         private void Run()
         {
             try
             {
-                resolver = new DefaultAssemblyResolver(RevitPath);
-                parser = new DomainParser() { revitDirectory = RevitPath };
-                parser.CreateParser();
-                parser.Run(SelectedModel.Path, SelectedModel.Name, Parameters);
-           
+                loader.RunAssembly(SelectedModel, Parameters);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message + Environment.NewLine + ex.StackTrace);
-                parser?.Unload();
             }
         }
 

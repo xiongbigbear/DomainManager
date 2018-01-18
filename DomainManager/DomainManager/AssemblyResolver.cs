@@ -15,19 +15,19 @@ namespace DomainManager
     }
 
     [Serializable]
-    public class DefaultAssemblyResolver:IAssemblyResolver
+    public class AssemblyResolver : IAssemblyResolver
     {
         public string revitDirectory = "";
 
         public List<string> AdditionalResolutionDirectories { get; set; }
 
-        public DefaultAssemblyResolver(string revitDirectory)
+        public AssemblyResolver(string revitDirectory)
         {
             this.revitDirectory = revitDirectory;
             AdditionalResolutionDirectories = new List<string>();
         }
 
-        public DefaultAssemblyResolver(string revitDirectory, List<string> additionalDirectories)
+        public AssemblyResolver(string revitDirectory, List<string> additionalDirectories)
         {
             this.revitDirectory = revitDirectory;
             AdditionalResolutionDirectories = additionalDirectories;
@@ -83,8 +83,8 @@ namespace DomainManager
                 return Assembly.LoadFrom(depenFile);
             }
 
-           // If the above fail, attempt to load from the GAC
-        try
+            // If the above fail, attempt to load from the GAC
+            try
             {
                 return Assembly.LoadFrom(args.Name);
             }
@@ -120,7 +120,7 @@ namespace DomainManager
             return null;
         }
 
-     
+
         public Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var dir = Path.GetDirectoryName(args.RequestingAssembly.Location);
