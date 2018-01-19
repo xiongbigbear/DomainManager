@@ -14,15 +14,18 @@ namespace DomainManager
    [Serializable]
     public class AssemblyLoader
     {
+        IAssemblyResolver resolver = null;
         private Assembly assembly = null;
-        public AssemblyLoader(IAssemblyResolver resolver)
+        public AssemblyLoader(IAssemblyResolver _resolver)
         {
-            AppDomain.CurrentDomain.AssemblyResolve += resolver.Resolve;
+            resolver = _resolver;
+            //AppDomain.CurrentDomain.AssemblyResolve += resolver.Resolve;
         }
         public AssemblyData LoadAssembly(string assemblyPath)
         {
+            AppDomain.CurrentDomain.AssemblyResolve += resolver.Resolve;
             var bytes = File.ReadAllBytes(assemblyPath);
-            assembly = Assembly.Load(bytes);
+            assembly = Assembly.LoadFrom(assemblyPath);
             if (assembly == null)
             {
                 MessageBox.Show("resolve failed");

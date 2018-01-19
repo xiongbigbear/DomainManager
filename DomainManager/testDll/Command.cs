@@ -7,6 +7,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.Attributes;
 using System.Windows;
+using Newtonsoft.Json;
 
 namespace testDll
 {
@@ -17,6 +18,7 @@ namespace testDll
         {
             var doc = commandData.Application.ActiveUIDocument.Document;
             var ctor = new FilteredElementCollector(doc).OfClass(typeof(FamilyInstance));
+            JsonConvert.SerializeObject("ss");
             MessageBox.Show(ctor.Count().ToString());
             return Result.Succeeded;
         }
